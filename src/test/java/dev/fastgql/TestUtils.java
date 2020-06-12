@@ -3,6 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
+
 package dev.fastgql;
 
 import com.google.common.base.Charsets;
@@ -32,8 +33,16 @@ public class TestUtils {
   }
 
   public static Stream<String> queryDirectories() throws IOException {
+    return getResourceDirectories("queries");
+  }
+
+  public static Stream<String> subscriptionDirectories() throws IOException {
+    return getResourceDirectories("subscriptions");
+  }
+
+  private static Stream<String> getResourceDirectories(String basePathName) throws IOException {
     int resourceRootNameCount = getResourceRoot().getNameCount() - 1;
-    Path basePath = getBasePath("queries");
+    Path basePath = getBasePath(basePathName);
     Stream<Path> stream = Files.walk(basePath, 2);
     return stream
         .filter(
