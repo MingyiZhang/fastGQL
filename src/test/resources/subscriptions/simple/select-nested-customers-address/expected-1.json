@@ -1,0 +1,34 @@
+{
+  "id": "1",
+  "type": "data",
+  "payload": {
+    "data": {
+      "customers": [
+        {
+          "id": 101,
+          "first_name": "John"
+        },
+        {
+          "id": 102,
+          "first_name": "Uli"
+        },
+        {
+          "id": 103,
+          "first_name": "a"
+        },
+        {
+          "id": 104,
+          "first_name": "b"
+        },
+        {
+          "id": 105,
+          "first_name": "c"
+        },
+        {
+          "id": 106,
+          "first_name": "d"
+        }
+      ]
+    }
+  }
+}
