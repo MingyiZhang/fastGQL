@@ -28,7 +28,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -161,20 +160,15 @@ public class FastGQLServerPostgresTest {
     @MethodSource("dev.fastgql.TestUtils#subscriptionDirectories")
     void shouldReceiveResponse(String directory, Vertx vertx, VertxTestContext context) {
       System.out.println(String.format("Test: %s", directory));
-      veryfySubscriptionSimple(directory, port, vertx, context);
-    }
-
-    @Test
-    void shouldReceiveEventsForSimpleSubscription(Vertx vertx, VertxTestContext context) {
-      String query = "subscriptions/simple/select-customers/query.graphql";
+      String query = String.format("%s/query.graphql", directory);
       List<String> expected =
           List.of(
-              "subscriptions/simple/select-customers/expected-1.json",
-              "subscriptions/simple/select-customers/expected-2.json");
+              String.format("%s/expected-1.json", directory),
+              String.format("%s/expected-2.json", directory));
       GraphQLTestUtils.verifySubscription(
           port, query, expected, customersStartOffset, vertx, context);
-      DBTestUtils.executeSQLQueryWithDelay(
-          "INSERT INTO customers VALUES (107, 'John', 'Qwe', 'john@qwe.com', 101)",
+      DBTestUtils.executeSQLQueryFromResourceWithDelay(
+          String.format("%s/query.sql", directory),
           1000,
           TimeUnit.MILLISECONDS,
           postgresContainer,
