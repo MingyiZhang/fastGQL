@@ -6,9 +6,6 @@
 
 package dev.fastgql.graphql;
 
-import static dev.fastgql.graphql.GraphQLNaming.getNameBoolType;
-import static dev.fastgql.graphql.GraphQLNaming.getNameForReferencedByField;
-import static dev.fastgql.graphql.GraphQLNaming.getNameForReferencingField;
 import static graphql.Scalars.GraphQLInt;
 
 import dev.fastgql.common.QualifiedName;
