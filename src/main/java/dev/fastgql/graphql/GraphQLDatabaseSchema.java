@@ -6,6 +6,9 @@
 
 package dev.fastgql.graphql;
 
+import static dev.fastgql.graphql.GraphQLNaming.getNameBoolType;
+import static dev.fastgql.graphql.GraphQLNaming.getNameForReferencedByField;
+import static dev.fastgql.graphql.GraphQLNaming.getNameForReferencingField;
 import static graphql.Scalars.GraphQLInt;
 
 import dev.fastgql.common.QualifiedName;
@@ -40,10 +43,6 @@ public class GraphQLDatabaseSchema {
   private final Map<String, GraphQLArgument> orderByMap;
   private final Map<String, GraphQLArgument> whereMap;
 
-  public GraphQLFieldDefinition fieldAt(String table, String field) {
-    return graph.get(table).get(field);
-  }
-
   /**
    * Constructs object from {@link DatabaseSchema}.
    *
@@ -55,50 +54,6 @@ public class GraphQLDatabaseSchema {
     this.offset = createArgument("offset", GraphQLInt);
     this.orderByMap = createOrderByMap(databaseSchema);
     this.whereMap = createWhereMap(databaseSchema);
-  }
-
-  /**
-   * Applies this schema to given {@link GraphQLObjectType} builders (e.g. Query or Subscription
-   * object builders). Has to be done this way since internally it constructs other {@link
-   * GraphQLObjectType}, which should be constructed only once with the same name.
-   *
-   * @param builders builders to which this schema will be applied
-   */
-  public void applyToGraphQLObjectTypes(List<GraphQLObjectType.Builder> builders) {
-    Objects.requireNonNull(builders);
-    graph.forEach(
-        (tableName, fieldNameToGraphQLFieldDefinition) -> {
-          GraphQLObjectType.Builder objectBuilder = GraphQLObjectType.newObject().name(tableName);
-          fieldNameToGraphQLFieldDefinition.forEach(
-              (fieldName, graphQLFieldDefinition) -> {
-                graphql.schema.GraphQLFieldDefinition.Builder fieldBuilder =
-                    graphql.schema.GraphQLFieldDefinition.newFieldDefinition()
-                        .name(fieldName)
-                        .type(graphQLFieldDefinition.getGraphQLType());
-                if (graphQLFieldDefinition.getReferenceType() == ReferenceType.REFERENCED) {
-                  String foreignTableName = graphQLFieldDefinition.getForeignName().getTableName();
-                  fieldBuilder
-                      .argument(limit)
-                      .argument(offset)
-                      .argument(orderByMap.get(foreignTableName))
-                      .argument(whereMap.get(foreignTableName));
-                }
-                objectBuilder.field(fieldBuilder.build());
-              });
-
-          GraphQLObjectType object = objectBuilder.build();
-          builders.forEach(
-              builder ->
-                  builder.field(
-                      graphql.schema.GraphQLFieldDefinition.newFieldDefinition()
-                          .name(tableName)
-                          .type(GraphQLList.list(object))
-                          .argument(limit)
-                          .argument(offset)
-                          .argument(orderByMap.get(tableName))
-                          .argument(whereMap.get(tableName))
-                          .build()));
-        });
   }
 
   private static GraphQLArgument createArgument(String name, GraphQLScalarType type) {
@@ -218,8 +173,7 @@ public class GraphQLDatabaseSchema {
                   (name, node) -> {
                     GraphQLInputType nodeType =
                         ConditionalOperatorTypes.scalarTypeToComparisonExpMap.get(
-                            GraphQLArgumentsUtils.fieldTypeGraphQLScalarTypeMap.get(
-                                node.getKeyType()));
+                            GraphQLFieldDefinition.keyTypeToGraphQLType.get(node.getKeyType()));
                     builder.field(
                         GraphQLInputObjectField.newInputObjectField()
                             .name(name)
@@ -243,6 +197,54 @@ public class GraphQLDatabaseSchema {
               whereMap.put(parent, where);
             });
     return whereMap;
+  }
+
+  public GraphQLFieldDefinition fieldAt(String table, String field) {
+    return graph.get(table).get(field);
+  }
+
+  /**
+   * Applies this schema to given {@link GraphQLObjectType} builders (e.g. Query or Subscription
+   * object builders). Has to be done this way since internally it constructs other {@link
+   * GraphQLObjectType}, which should be constructed only once with the same name.
+   *
+   * @param builders builders to which this schema will be applied
+   */
+  public void applyToGraphQLObjectTypes(List<GraphQLObjectType.Builder> builders) {
+    Objects.requireNonNull(builders);
+    graph.forEach(
+        (tableName, fieldNameToGraphQLFieldDefinition) -> {
+          GraphQLObjectType.Builder objectBuilder = GraphQLObjectType.newObject().name(tableName);
+          fieldNameToGraphQLFieldDefinition.forEach(
+              (fieldName, graphQLFieldDefinition) -> {
+                graphql.schema.GraphQLFieldDefinition.Builder fieldBuilder =
+                    graphql.schema.GraphQLFieldDefinition.newFieldDefinition()
+                        .name(fieldName)
+                        .type(graphQLFieldDefinition.getGraphQLType());
+                if (graphQLFieldDefinition.getReferenceType() == ReferenceType.REFERENCED) {
+                  String foreignTableName = graphQLFieldDefinition.getForeignName().getTableName();
+                  fieldBuilder
+                      .argument(limit)
+                      .argument(offset)
+                      .argument(orderByMap.get(foreignTableName))
+                      .argument(whereMap.get(foreignTableName));
+                }
+                objectBuilder.field(fieldBuilder.build());
+              });
+
+          GraphQLObjectType object = objectBuilder.build();
+          builders.forEach(
+              builder ->
+                  builder.field(
+                      graphql.schema.GraphQLFieldDefinition.newFieldDefinition()
+                          .name(tableName)
+                          .type(GraphQLList.list(object))
+                          .argument(limit)
+                          .argument(offset)
+                          .argument(orderByMap.get(tableName))
+                          .argument(whereMap.get(tableName))
+                          .build()));
+        });
   }
 
   @Override
