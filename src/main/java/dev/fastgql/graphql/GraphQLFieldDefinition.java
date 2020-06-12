@@ -6,7 +6,6 @@
 
 package dev.fastgql.graphql;
 
-import static graphql.Scalars.GraphQLBoolean;
 import static graphql.Scalars.GraphQLFloat;
 import static graphql.Scalars.GraphQLInt;
 import static graphql.Scalars.GraphQLString;
@@ -30,12 +29,11 @@ public class GraphQLFieldDefinition {
   private final GraphQLOutputType graphQLType;
   private final QualifiedName foreignName;
   private final ReferenceType referenceType;
-  public static final Map<KeyType, GraphQLScalarType> keyTypeToGraphQLType =
+  private static final Map<KeyType, GraphQLScalarType> keyTypeToGraphQLType =
       Map.of(
           KeyType.INT, GraphQLInt,
           KeyType.STRING, GraphQLString,
-          KeyType.FLOAT, GraphQLFloat,
-          KeyType.BOOL, GraphQLBoolean);
+          KeyType.FLOAT, GraphQLFloat);
 
   /**
    * Create a field which extracts value for given key in a table. This type of field in GraphQL
