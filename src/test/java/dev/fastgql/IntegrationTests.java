@@ -17,6 +17,11 @@ public class IntegrationTests {
     class PostgresQuery extends ContainerEnvWithDatabase implements WithPostgres, QueryTests {}
 
     @Nested
+    @DisplayName("PostgreSQL Query Tests with JWT Security")
+    class PostgresQueryWithSecurity extends ContainerEnvWithDatabase
+        implements WithPostgres, WithSecurity, QueryTestsWithSecurity {}
+
+    @Nested
     @DisplayName("PostgreSQL Mutation Tests")
     class PostgresMutation extends ContainerEnvWithDatabase
         implements WithPostgres, MutationTests {}
@@ -38,6 +43,11 @@ public class IntegrationTests {
     @Nested
     @DisplayName("MySQL Query Tests")
     class MySQLQuery extends ContainerEnvWithDatabase implements WithMySQL, QueryTests {}
+
+    @Nested
+    @DisplayName("MySQL Query Tests with JWT Security")
+    class MySQLQueryWithSecurity extends ContainerEnvWithDatabase
+        implements WithMySQL, WithSecurity, QueryTestsWithSecurity {}
 
     @Nested
     @DisplayName("MySQL Mutation Tests")
