@@ -2,6 +2,7 @@ package dev.fastgql.modules;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import dev.fastgql.modules.Annotations.AuthorizationHandler;
 import dev.fastgql.modules.Annotations.ServerPort;
 import dev.fastgql.modules.Annotations.UpdateHandler;
 import dev.fastgql.router.ApolloWSHandlerUpdatable;
@@ -46,6 +47,13 @@ public class ServerModule extends AbstractModule {
   @Singleton
   GraphiQLHandler provideGraphiQLHandler() {
     return GraphiQLHandler.create(new GraphiQLHandlerOptions().setEnabled(true));
+  }
+
+  @Provides
+  @Singleton
+  @AuthorizationHandler
+  Handler<RoutingContext> provideAuthorizationHandler() {
+    return context -> {};
   }
 
   @Provides
