@@ -28,11 +28,12 @@ public interface SubscriptionTestsWithSecurity extends SetupTearDownForAll {
     Pool pool = getPool(vertx);
     Pool poolMultipleQueries = getPoolMultipleQueries(vertx);
 
+    String jwtToken = getJwtToken(vertx, "admin");
     WebClient client = WebClient.create(vertx);
     HttpClient httpClient = vertx.createHttpClient();
     WebSocketConnectOptions wsOptions =
         new WebSocketConnectOptions()
-            .addHeader(HttpHeaders.AUTHORIZATION.toString(), "Bearer " + getJwtToken())
+            .addHeader(HttpHeaders.AUTHORIZATION.toString(), "Bearer " + jwtToken)
             .setHost("localhost")
             .setPort(getDeploymentPort())
             .setURI("/v1/graphql");
@@ -48,7 +49,7 @@ public interface SubscriptionTestsWithSecurity extends SetupTearDownForAll {
             rows ->
                 client
                     .get(getDeploymentPort(), "localhost", "/v1/update")
-                    .bearerTokenAuthentication(getJwtToken())
+                    .bearerTokenAuthentication(jwtToken)
                     .rxSend()
                     .flatMap(response -> httpClient.rxWebSocket(wsOptions))
                     .flatMapCompletable(

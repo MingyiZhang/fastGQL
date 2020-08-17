@@ -63,7 +63,7 @@ public interface WithFastGQL {
     return Map.of();
   }
 
-  default String getJwtToken() {
+  default String getJwtToken(Vertx vertx, String role) {
     return null;
   }
 

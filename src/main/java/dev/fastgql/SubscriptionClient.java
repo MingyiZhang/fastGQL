@@ -1,31 +1,31 @@
 package dev.fastgql;
 
-import io.vertx.core.AbstractVerticle;
+import dev.fastgql.security.TokenGenerator;
 import io.vertx.core.Launcher;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.graphql.ApolloWSMessageType;
+import io.vertx.reactivex.core.AbstractVerticle;
+import io.vertx.reactivex.core.buffer.Buffer;
+import io.vertx.reactivex.core.http.WebSocket;
 
 public class SubscriptionClient extends AbstractVerticle {
 
-  private static final String jwtToken =
-      "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9."
-          + "eyJpYXQiOjE1OTQ3MjA4MTF9."
-          + "tCUr0CM_j6ZOiJakW2ODxvxxEJtNnmMWquSTGhJmK1aMu4aeAtHyGJlwpkmLo-"
-          + "FBMWsU8elGLiTZ5xeGISS8tMWd4rfg03yyjSOjaDeNTZiMNYb0JZ06b8Sd6rGV"
-          + "2FXapcgDqLlZvxfYCwL5mRIKSCZs_gmSAZ47y6RvKALA96bToB6LFJNA_vXQKW"
-          + "xmFuAjuEBMs0RCGDY_VeJ9VIDUvtuW7h3sUR2Vs3XeJVtNtfwmR932UFV5ANhR"
-          + "U0n_18G8i_VEtPxmGuv8Z2C-UnOaE5ryiMltXwRt15NDNy77hhzSW2xOGwnttq"
-          + "xoHIixWiJuIi1Z0XPurvtf7oymIKRtBg";
-
   public static void main(String[] args) {
-    Launcher.executeCommand("run", SubscriptionClient.class.getName());
+    Launcher.executeCommand(
+        "run",
+        SubscriptionClient.class.getName(),
+        "--conf",
+        "src/main/resources/conf-postgres.json");
   }
 
   @Override
   public void start() {
+    TokenGenerator tokenGenerator =
+        TokenGenerator.createTokenGenerator(vertx, config().getJsonObject("auth"));
+    String jwtToken = tokenGenerator.generateTokenWithRole("admin");
+
     WebSocketConnectOptions wsOptions =
         new WebSocketConnectOptions()
             .addHeader(HttpHeaders.AUTHORIZATION.toString(), "Bearer " + jwtToken)
@@ -55,7 +55,7 @@ public class SubscriptionClient extends AbstractVerticle {
                                 .put(
                                     "query",
                                     "subscription { addresses { id customers_on_address { id } } }"));
-                webSocket.write(request.toBuffer());
+                webSocket.write(new Buffer(request.toBuffer()));
               } else {
                 websocketRes.cause().printStackTrace();
               }

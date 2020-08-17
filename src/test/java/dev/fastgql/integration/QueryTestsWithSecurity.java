@@ -21,18 +21,19 @@ public interface QueryTestsWithSecurity extends SetupTearDownForAll {
     System.out.println(String.format("Test: %s", directory));
     Pool poolMultipleQueries = getPoolMultipleQueries(vertx);
 
+    String jwtToken = getJwtToken(vertx, "admin");
     WebClient client = WebClient.create(vertx);
     DBTestUtils.executeSQLQuery(Paths.get(directory, "init.sql").toString(), poolMultipleQueries)
         .flatMap(
             rows ->
                 client
                     .get(getDeploymentPort(), "localhost", "/v1/update")
-                    .bearerTokenAuthentication(getJwtToken())
+                    .bearerTokenAuthentication(jwtToken)
                     .rxSend())
         .subscribe(
             response ->
                 GraphQLTestUtils.verifyQuerySimple(
-                    directory, getDeploymentPort(), getJwtToken(), vertx, context),
+                    directory, getDeploymentPort(), jwtToken, vertx, context),
             context::failNow);
   }
 
